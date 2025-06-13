@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         
         const campaign = await campaignResponse.json();
         
-        // 2. Ad Set oluştur
+        // 2. Ad Set oluştur - Instagram placement'ı kaldır
         const adSetData = new URLSearchParams({
             name: `${campaignName} - Ad Set`,
             campaign_id: campaign.id,
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
                 geo_locations: { countries: ['TR'] },
                 age_min: 18,
                 age_max: 65,
-                publisher_platforms: ['instagram'],
+                publisher_platforms: ['facebook'], // Sadece Facebook
                 device_platforms: ['mobile']
             }),
             status: 'PAUSED',
@@ -93,12 +93,12 @@ export default async function handler(req, res) {
         
         const adSet = await adSetResponse.json();
         
-        // 3. Creative oluştur
+        // 3. Creative oluştur - Facebook Page Post kullan
         const creativeData = new URLSearchParams({
             name: `${campaignName} - Creative`,
             object_story_spec: JSON.stringify({
                 page_id: pageId,
-                instagram_actor_id: "1285700382625176", // Yeni Instagram Business Account ID
+                // Instagram actor_id kaldırıldı - sadece Facebook Page kullan
                 object_story_id: selectedPost.id
             }),
             access_token: accessToken

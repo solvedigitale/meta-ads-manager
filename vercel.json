@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "api/connect.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/posts.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/create-campaign.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
