@@ -34,6 +34,7 @@ export default async function handler(req, res) {
             name: campaignName,
             objective: 'MESSAGES',
             status: 'PAUSED',
+            special_ad_categories: '[]', // Boş array - özel reklam kategorisi yok
             access_token: accessToken
         });
         
