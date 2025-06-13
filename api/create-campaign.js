@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         // 1. Kampanya oluştur
         const campaignData = new URLSearchParams({
             name: campaignName,
-            objective: 'MESSAGES',
+            objective: 'OUTCOME_ENGAGEMENT',
             status: 'PAUSED',
             special_ad_categories: '[]', // Boş array - özel reklam kategorisi yok
             access_token: accessToken
