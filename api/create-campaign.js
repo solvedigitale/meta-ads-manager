@@ -29,12 +29,12 @@ export default async function handler(req, res) {
             });
         }
         
-        // 1. Kampanya oluştur
+        // 1. Kampanya oluştur - OUTCOME_TRAFFIC objective
         const campaignData = new URLSearchParams({
             name: campaignName,
-            objective: 'OUTCOME_ENGAGEMENT',
+            objective: 'OUTCOME_TRAFFIC',
             status: 'PAUSED',
-            special_ad_categories: '[]', // Boş array - özel reklam kategorisi yok
+            special_ad_categories: '[]',
             access_token: accessToken
         });
         
@@ -56,19 +56,19 @@ export default async function handler(req, res) {
         
         const campaign = await campaignResponse.json();
         
-        // 2. Ad Set oluştur - Instagram placement'ı kaldır
+        // 2. Ad Set oluştur - Link Clicks için
         const adSetData = new URLSearchParams({
             name: `${campaignName} - Ad Set`,
             campaign_id: campaign.id,
-            daily_budget: (dailyBudget * 100).toString(), // Kuruş cinsinden
-            billing_event: 'IMPRESSIONS',
-            optimization_goal: 'CONVERSATIONS',
+            daily_budget: (dailyBudget * 100).toString(),
+            billing_event: 'LINK_CLICKS',
+            optimization_goal: 'LINK_CLICKS',
             bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
             targeting: JSON.stringify({
                 geo_locations: { countries: ['TR'] },
                 age_min: 18,
                 age_max: 65,
-                publisher_platforms: ['facebook'], // Sadece Facebook
+                publisher_platforms: ['facebook'],
                 device_platforms: ['mobile']
             }),
             status: 'PAUSED',
@@ -93,13 +93,20 @@ export default async function handler(req, res) {
         
         const adSet = await adSetResponse.json();
         
-        // 3. Creative oluştur - Facebook Page Post kullan
+        // 3. Creative oluştur - Basit Link Ad
         const creativeData = new URLSearchParams({
             name: `${campaignName} - Creative`,
             object_story_spec: JSON.stringify({
                 page_id: pageId,
-                // Instagram actor_id kaldırıldı - sadece Facebook Page kullan
-                object_story_id: selectedPost.id
+                link_data: {
+                    link: `https://m.me/${pageId}`, // Messenger linki
+                    message: 'Bize mesaj gönderin! 💬',
+                    name: campaignName,
+                    description: 'Sorularınız için bize yazın.',
+                    call_to_action: {
+                        type: 'SEND_MESSAGE'
+                    }
+                }
             }),
             access_token: accessToken
         });
