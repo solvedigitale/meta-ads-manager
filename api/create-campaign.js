@@ -29,23 +29,6 @@ export default async function handler(req, res) {
             });
         }
         
-        // Instagram Business Account ID'sini al
-        const pageResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${pageId}?fields=instagram_business_account&access_token=${accessToken}`
-        );
-        
-        if (!pageResponse.ok) {
-            const error = await pageResponse.json();
-            throw new Error(`Page hatası: ${error.error?.message || 'Bilinmeyen hata'}`);
-        }
-        
-        const pageData = await pageResponse.json();
-        const instagramAccountId = pageData.instagram_business_account?.id;
-        
-        if (!instagramAccountId) {
-            throw new Error('Instagram Business Account bulunamadı');
-        }
-
         // 1. Kampanya oluştur
         const campaignData = new URLSearchParams({
             name: campaignName,
@@ -115,7 +98,7 @@ export default async function handler(req, res) {
             name: `${campaignName} - Creative`,
             object_story_spec: JSON.stringify({
                 page_id: pageId,
-                instagram_actor_id: instagramAccountId, // Instagram Business Account ID kullan
+                instagram_actor_id: "17841401110857347", // Direkt Instagram Business Account ID
                 object_story_id: selectedPost.id
             }),
             access_token: accessToken

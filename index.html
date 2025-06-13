@@ -82,6 +82,11 @@
             border-color: #405de6;
         }
         
+        input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+        
         .btn {
             background: linear-gradient(45deg, #405de6, #5851db);
             color: white;
@@ -232,6 +237,10 @@
                     <label>Instagram Sayfa ID:</label>
                     <input type="text" id="pageId" placeholder="Instagram sayfa ID'niz">
                 </div>
+                <div class="form-group">
+                    <label>Instagram Business Account ID:</label>
+                    <input type="text" id="instagramAccountId" value="17841401110857347" readonly>
+                </div>
                 <button class="btn" onclick="connectAPI()" id="connectBtn">Bağlan</button>
                 <div id="connectionStatus"></div>
             </div>
@@ -293,6 +302,7 @@
         let selectedPost = null;
         let posts = [];
         let apiCredentials = {};
+        const instagramAccountId = "17841401110857347"; // Direkt Instagram Business Account ID
         
         function goToStep(step) {
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -316,7 +326,8 @@
             document.getElementById('pageId').value = '';
             document.getElementById('campaignName').value = '';
             document.getElementById('dailyBudget').value = '';
-            document.getElementById('postsGrid').innerHTML = '';
+            const grid = document.getElementById('postsGrid');
+            if (grid) grid.innerHTML = '';
             document.getElementById('connectionStatus').innerHTML = '';
             document.getElementById('createBtn').style.display = 'none';
             
@@ -369,94 +380,94 @@
         }
         
         async function loadInstagramPosts() {
-    if (!apiConnected) {
-        showStatus('error', 'Önce API bağlantısı yapın', 'postsContainer');
-        return;
-    }
-    
-    const loadBtn = document.getElementById('loadPostsBtn');
-    loadBtn.disabled = true;
-    loadBtn.innerHTML = '<div class="loading-spinner"></div>Yükleniyor...';
-    
-    try {
-        showStatus('loading', 'Instagram gönderileri yükleniyor...', 'postsContainer');
-        
-        const response = await fetch('/api/posts', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(apiCredentials)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            posts = result.posts;
+            if (!apiConnected) {
+                showStatus('error', 'Önce API bağlantısı yapın', 'postsContainer');
+                return;
+            }
             
-            // postsContainer'ı temizle
-            const container = document.getElementById('postsContainer');
-            container.innerHTML = '';
+            const loadBtn = document.getElementById('loadPostsBtn');
+            loadBtn.disabled = true;
+            loadBtn.innerHTML = '<div class="loading-spinner"></div>Yükleniyor...';
             
-            // displayPosts çağır
-            displayPosts(posts);
-        } else {
-            throw new Error(result.error || 'Gönderiler yüklenemedi');
+            try {
+                showStatus('loading', 'Instagram gönderileri yükleniyor...', 'postsContainer');
+                
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(apiCredentials)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    posts = result.posts;
+                    
+                    // postsContainer'ı temizle
+                    const container = document.getElementById('postsContainer');
+                    container.innerHTML = '';
+                    
+                    // displayPosts çağır
+                    displayPosts(posts);
+                } else {
+                    throw new Error(result.error || 'Gönderiler yüklenemedi');
+                }
+            } catch (error) {
+                showStatus('error', `Gönderiler yüklenirken hata: ${error.message}`, 'postsContainer');
+            } finally {
+                loadBtn.disabled = false;
+                loadBtn.innerHTML = 'Gönderileri Yükle';
+            }
         }
-    } catch (error) {
-        showStatus('error', `Gönderiler yüklenirken hata: ${error.message}`, 'postsContainer');
-    } finally {
-        loadBtn.disabled = false;
-        loadBtn.innerHTML = 'Gönderileri Yükle';
-    }
-}
         
         function displayPosts(posts) {
-    let grid = document.getElementById('postsGrid');
-    
-    // Eğer grid yoksa oluştur
-    if (!grid) {
-        grid = document.createElement('div');
-        grid.id = 'postsGrid';
-        grid.className = 'posts-grid';
-        
-        const container = document.getElementById('postsContainer');
-        if (container) {
-            container.appendChild(grid);
-        } else {
-            console.error('postsContainer bulunamadı');
-            return;
+            let grid = document.getElementById('postsGrid');
+            
+            // Eğer grid yoksa oluştur
+            if (!grid) {
+                grid = document.createElement('div');
+                grid.id = 'postsGrid';
+                grid.className = 'posts-grid';
+                
+                const container = document.getElementById('postsContainer');
+                if (container) {
+                    container.appendChild(grid);
+                } else {
+                    console.error('postsContainer bulunamadı');
+                    return;
+                }
+            }
+            
+            grid.innerHTML = '';
+            
+            if (posts.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Hiç gönderi bulunamadı.</p>';
+                return;
+            }
+            
+            posts.forEach((post, index) => {
+                const postCard = document.createElement('div');
+                postCard.className = 'post-card';
+                postCard.onclick = () => selectPost(post, postCard);
+                
+                const imageContent = post.media_url ? 
+                    `<img src="${post.media_url}" alt="Post" onerror="this.style.display='none'; this.parentNode.innerHTML='${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}';">` :
+                    `${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}`;
+                
+                postCard.innerHTML = `
+                    <div class="post-image">
+                        ${imageContent}
+                    </div>
+                    <p style="font-size: 12px; color: #666;">
+                        ${post.caption ? post.caption.substring(0, 50) + '...' : 'Açıklama yok'}
+                    </p>
+                `;
+                
+                grid.appendChild(postCard);
+            });
         }
-    }
-    
-    grid.innerHTML = '';
-    
-    if (posts.length === 0) {
-        grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Hiç gönderi bulunamadı.</p>';
-        return;
-    }
-    
-    posts.forEach((post, index) => {
-        const postCard = document.createElement('div');
-        postCard.className = 'post-card';
-        postCard.onclick = () => selectPost(post, postCard);
-        
-        const imageContent = post.media_url ? 
-            `<img src="${post.media_url}" alt="Post" onerror="this.style.display='none'; this.parentNode.innerHTML='${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}';">` :
-            `${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}`;
-        
-        postCard.innerHTML = `
-            <div class="post-image">
-                ${imageContent}
-            </div>
-            <p style="font-size: 12px; color: #666;">
-                ${post.caption ? post.caption.substring(0, 50) + '...' : 'Açıklama yok'}
-            </p>
-        `;
-        
-        grid.appendChild(postCard);
-    });
-}
         
         function selectPost(post, element) {
             document.querySelectorAll('.post-card').forEach(card => {
