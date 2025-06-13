@@ -369,74 +369,94 @@
         }
         
         async function loadInstagramPosts() {
-            if (!apiConnected) {
-                showStatus('error', 'Önce API bağlantısı yapın', 'postsContainer');
-                return;
-            }
+    if (!apiConnected) {
+        showStatus('error', 'Önce API bağlantısı yapın', 'postsContainer');
+        return;
+    }
+    
+    const loadBtn = document.getElementById('loadPostsBtn');
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = '<div class="loading-spinner"></div>Yükleniyor...';
+    
+    try {
+        showStatus('loading', 'Instagram gönderileri yükleniyor...', 'postsContainer');
+        
+        const response = await fetch('/api/posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(apiCredentials)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            posts = result.posts;
             
-            const loadBtn = document.getElementById('loadPostsBtn');
-            loadBtn.disabled = true;
-            loadBtn.innerHTML = '<div class="loading-spinner"></div>Yükleniyor...';
+            // postsContainer'ı temizle
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = '';
             
-            try {
-                showStatus('loading', 'Instagram gönderileri yükleniyor...', 'postsContainer');
-                
-                const response = await fetch('/api/posts', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(apiCredentials)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    posts = result.posts;
-                    displayPosts(posts);
-                    document.getElementById('postsContainer').innerHTML = '';
-                    document.getElementById('postsContainer').appendChild(document.getElementById('postsGrid'));
-                } else {
-                    throw new Error(result.error || 'Gönderiler yüklenemedi');
-                }
-            } catch (error) {
-                showStatus('error', `Gönderiler yüklenirken hata: ${error.message}`, 'postsContainer');
-            } finally {
-                loadBtn.disabled = false;
-                loadBtn.innerHTML = 'Gönderileri Yükle';
-            }
+            // displayPosts çağır
+            displayPosts(posts);
+        } else {
+            throw new Error(result.error || 'Gönderiler yüklenemedi');
         }
+    } catch (error) {
+        showStatus('error', `Gönderiler yüklenirken hata: ${error.message}`, 'postsContainer');
+    } finally {
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = 'Gönderileri Yükle';
+    }
+}
         
         function displayPosts(posts) {
-            const grid = document.getElementById('postsGrid');
-            grid.innerHTML = '';
-            
-            if (posts.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; color: #666;">Hiç gönderi bulunamadı.</p>';
-                return;
-            }
-            
-            posts.forEach((post, index) => {
-                const postCard = document.createElement('div');
-                postCard.className = 'post-card';
-                postCard.onclick = () => selectPost(post, postCard);
-                
-                const imageContent = post.media_url ? 
-                    `<img src="${post.media_url}" alt="Post" onerror="this.style.display='none'; this.parentNode.innerHTML='${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}';">` :
-                    `${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}`;
-                
-                postCard.innerHTML = `
-                    <div class="post-image">
-                        ${imageContent}
-                    </div>
-                    <p style="font-size: 12px; color: #666;">
-                        ${post.caption ? post.caption.substring(0, 50) + '...' : 'Açıklama yok'}
-                    </p>
-                `;
-                
-                grid.appendChild(postCard);
-            });
+    let grid = document.getElementById('postsGrid');
+    
+    // Eğer grid yoksa oluştur
+    if (!grid) {
+        grid = document.createElement('div');
+        grid.id = 'postsGrid';
+        grid.className = 'posts-grid';
+        
+        const container = document.getElementById('postsContainer');
+        if (container) {
+            container.appendChild(grid);
+        } else {
+            console.error('postsContainer bulunamadı');
+            return;
         }
+    }
+    
+    grid.innerHTML = '';
+    
+    if (posts.length === 0) {
+        grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Hiç gönderi bulunamadı.</p>';
+        return;
+    }
+    
+    posts.forEach((post, index) => {
+        const postCard = document.createElement('div');
+        postCard.className = 'post-card';
+        postCard.onclick = () => selectPost(post, postCard);
+        
+        const imageContent = post.media_url ? 
+            `<img src="${post.media_url}" alt="Post" onerror="this.style.display='none'; this.parentNode.innerHTML='${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}';">` :
+            `${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}`;
+        
+        postCard.innerHTML = `
+            <div class="post-image">
+                ${imageContent}
+            </div>
+            <p style="font-size: 12px; color: #666;">
+                ${post.caption ? post.caption.substring(0, 50) + '...' : 'Açıklama yok'}
+            </p>
+        `;
+        
+        grid.appendChild(postCard);
+    });
+}
         
         function selectPost(post, element) {
             document.querySelectorAll('.post-card').forEach(card => {
