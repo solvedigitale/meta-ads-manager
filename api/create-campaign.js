@@ -98,7 +98,7 @@ export default async function handler(req, res) {
             name: `${campaignName} - Creative`,
             object_story_spec: JSON.stringify({
                 page_id: pageId,
-                instagram_actor_id: "17841401110857347", // Direkt Instagram Business Account ID
+                instagram_actor_id: "1285700382625176", // Yeni Instagram Business Account ID
                 object_story_id: selectedPost.id
             }),
             access_token: accessToken
