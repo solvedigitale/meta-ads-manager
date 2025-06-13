@@ -1,9 +1,14 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+  "functions": {
+    "api/connect.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/posts.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/create-campaign.js": {
+      "runtime": "nodejs18.x"
     }
-  ]
+  }
 }
