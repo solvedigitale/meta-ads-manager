@@ -255,7 +255,7 @@
                 <div class="form-group">
                     <label>Performans Hedefi:</label>
                     <select id="performanceGoal">
-                        <option value="POST_ENGAGEMENT">Gönderi Etkileşimini En Üst Seviyeye Çıkar</option>
+                        <option value="CONVERSATIONS">Konuşma Sayısını En Üst Seviyeye Çıkar</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -499,6 +499,7 @@
             
             const campaignName = document.getElementById('campaignName').value;
             const dailyBudget = document.getElementById('dailyBudget').value;
+            const performanceGoal = document.getElementById('performanceGoal').value;
             
             if (!campaignName || !dailyBudget) {
                 showStatus('error', 'Kampanya adı ve bütçe gerekli', 'postsContainer');
@@ -526,7 +527,8 @@
                         ...apiCredentials,
                         campaignName,
                         dailyBudget: parseInt(dailyBudget),
-                        selectedPost
+                        selectedPost,
+                        performanceGoal
                     })
                 });
                 

@@ -20,10 +20,11 @@ export default async function handler(req, res) {
             campaignName, 
             dailyBudget, 
             selectedPost,
-            instagramAccountId
+            instagramAccountId,
+            performanceGoal
         } = req.body;
         
-        if (!accessToken || !adAccountId || !pageId || !campaignName || !dailyBudget || !selectedPost || !instagramAccountId) {
+        if (!accessToken || !adAccountId || !pageId || !campaignName || !dailyBudget || !selectedPost || !instagramAccountId || !performanceGoal) {
             return res.status(400).json({ 
                 success: false, 
                 error: 'Eksik parametreler' 
@@ -63,7 +64,7 @@ export default async function handler(req, res) {
             campaign_id: campaign.id,
             daily_budget: (dailyBudget * 100).toString(),
             billing_event: 'IMPRESSIONS',
-            optimization_goal: 'POST_ENGAGEMENT',
+            optimization_goal: performanceGoal,
             bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
             targeting: JSON.stringify({
                 geo_locations: { countries: ['TR'] },
