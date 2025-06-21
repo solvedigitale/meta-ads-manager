@@ -31,10 +31,10 @@ export default async function handler(req, res) {
             });
         }
         
-        // 1. Kampanya oluştur - OUTCOME_ENGAGEMENT objective
+        // 1. Kampanya oluştur - OUTCOME_MESSAGES objective for conversations
         const campaignData = new URLSearchParams({
             name: campaignName,
-            objective: 'OUTCOME_ENGAGEMENT',
+            objective: 'OUTCOME_MESSAGES',
             status: 'PAUSED',
             special_ad_categories: '[]',
             access_token: accessToken
