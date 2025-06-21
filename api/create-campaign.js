@@ -101,10 +101,7 @@ export default async function handler(req, res) {
             instagram_user_id: instagramAccountId,
             source_instagram_media_id: selectedPost.id,
             call_to_action: JSON.stringify({
-                type: 'SEND_MESSAGE',
-                value: {
-                    app_destination: 'INSTAGRAM_DIRECT'
-                }
+                type: 'INSTAGRAM_MESSAGE'
             }),
             access_token: accessToken
         });
