@@ -96,11 +96,10 @@ export default async function handler(req, res) {
         
         const adSet = await adSetResponse.json();
         
-        // 3. Creative oluştur - Mevcut Instagram gönderisini kullan (CTA olmadan test)
+        // 3. Creative oluştur - Mevcut Instagram gönderisini object_story_id ile kullan
         const creativeData = new URLSearchParams({
             name: `${campaignName} - Creative`,
-            instagram_user_id: instagramAccountId,
-            source_instagram_media_id: selectedPost.id,
+            object_story_id: selectedPost.id,
             access_token: accessToken
         });
         
