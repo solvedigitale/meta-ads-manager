@@ -19,10 +19,11 @@ export default async function handler(req, res) {
             pageId, 
             campaignName, 
             dailyBudget, 
-            selectedPost 
+            selectedPost,
+            instagramAccountId
         } = req.body;
         
-        if (!accessToken || !adAccountId || !pageId || !campaignName || !dailyBudget || !selectedPost) {
+        if (!accessToken || !adAccountId || !pageId || !campaignName || !dailyBudget || !selectedPost || !instagramAccountId) {
             return res.status(400).json({ 
                 success: false, 
                 error: 'Eksik parametreler' 
@@ -69,6 +70,7 @@ export default async function handler(req, res) {
                 age_min: 18,
                 age_max: 65,
                 publisher_platforms: ['instagram'],
+                instagram_positions: ['stream', 'story', 'explore', 'reels'],
                 device_platforms: ['mobile', 'desktop']
             }),
             status: 'PAUSED',
@@ -93,20 +95,15 @@ export default async function handler(req, res) {
         
         const adSet = await adSetResponse.json();
         
-        // 3. Creative oluştur - Instagram Story Ad with selected post
+        // 3. Creative oluştur - Mevcut Instagram gönderisini kullan
         const creativeData = new URLSearchParams({
             name: `${campaignName} - Creative`,
-            object_story_spec: JSON.stringify({
-                instagram_actor_id: pageId,
-                link_data: {
-                    link: `https://www.instagram.com/direct/t/${pageId}`,
-                    message: 'Bize DM gönderin! 💬',
-                    name: campaignName,
-                    description: 'Sorularınız için bize yazın.',
-                    call_to_action: {
-                        type: 'SEND_MESSAGE'
-                    },
-                    image_hash: selectedPost.media_url ? await uploadImage(selectedPost.media_url, accessToken, adAccountId) : null
+            instagram_user_id: instagramAccountId,
+            source_instagram_media_id: selectedPost.id,
+            call_to_action: JSON.stringify({
+                type: 'SEND_MESSAGE',
+                value: {
+                    app_destination: 'INSTAGRAM_DIRECT'
                 }
             }),
             access_token: accessToken
@@ -125,6 +122,8 @@ export default async function handler(req, res) {
         
         if (!creativeResponse.ok) {
             const error = await creativeResponse.json();
+            // Facebook'tan gelen hatayı daha detaylı loglayalım
+            console.error('Facebook Creative Error:', error.error);
             throw new Error(`Creative hatası: ${error.error?.message || 'Bilinmeyen hata'}`);
         }
         

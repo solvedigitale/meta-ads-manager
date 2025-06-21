@@ -399,6 +399,7 @@
                 
                 if (result.success) {
                     posts = result.posts;
+                    apiCredentials.instagramAccountId = result.instagramAccountId;
                     
                     // postsContainer'ı temizle
                     const container = document.getElementById('postsContainer');
