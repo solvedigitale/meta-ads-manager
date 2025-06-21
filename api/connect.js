@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         
         // Ad Account'u test et
         const accountResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${adAccountId}?access_token=${accessToken}`
+            `https://graph.facebook.com/v19.0/${adAccountId}?access_token=${accessToken}`
         );
         
         if (!accountResponse.ok) {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         
         // Page'i test et
         const pageResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${pageId}?access_token=${accessToken}`
+            `https://graph.facebook.com/v19.0/${pageId}?access_token=${accessToken}`
         );
         
         if (!pageResponse.ok) {

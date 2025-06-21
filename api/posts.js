@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         
         // Önce Instagram Business Account ID'sini al
         const pageResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${pageId}?fields=instagram_business_account&access_token=${accessToken}`
+            `https://graph.facebook.com/v19.0/${pageId}?fields=instagram_business_account&access_token=${accessToken}`
         );
         
         if (!pageResponse.ok) {
@@ -45,9 +45,9 @@ export default async function handler(req, res) {
             });
         }
         
-        // Instagram medyalarını al
+        // Instagram medyalarını al - daha fazla alan ile
         const mediaResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${instagramAccountId}/media?fields=id,media_type,media_url,permalink,caption,timestamp&limit=20&access_token=${accessToken}`
+            `https://graph.facebook.com/v19.0/${instagramAccountId}/media?fields=id,media_type,media_url,permalink,caption,timestamp,thumbnail_url,children{media_url,media_type}&limit=20&access_token=${accessToken}`
         );
         
         if (!mediaResponse.ok) {
@@ -60,10 +60,17 @@ export default async function handler(req, res) {
         
         const mediaData = await mediaResponse.json();
         
-        // Sadece IMAGE ve VIDEO tiplerini filtrele
-        const posts = mediaData.data?.filter(post => 
-            post.media_type === 'IMAGE' || post.media_type === 'VIDEO'
-        ) || [];
+        // Sadece IMAGE ve VIDEO tiplerini filtrele ve carousel'ları da dahil et
+        const posts = mediaData.data?.filter(post => {
+            if (post.media_type === 'IMAGE' || post.media_type === 'VIDEO') {
+                return true;
+            }
+            // Carousel posts
+            if (post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.length > 0) {
+                return true;
+            }
+            return false;
+        }) || [];
         
         return res.status(200).json({ 
             success: true, 

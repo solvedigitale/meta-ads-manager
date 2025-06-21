@@ -29,17 +29,17 @@ export default async function handler(req, res) {
             });
         }
         
-        // 1. Kampanya oluştur - OUTCOME_TRAFFIC objective
+        // 1. Kampanya oluştur - OUTCOME_ENGAGEMENT objective
         const campaignData = new URLSearchParams({
             name: campaignName,
-            objective: 'OUTCOME_TRAFFIC',
+            objective: 'OUTCOME_ENGAGEMENT',
             status: 'PAUSED',
             special_ad_categories: '[]',
             access_token: accessToken
         });
         
         const campaignResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${adAccountId}/campaigns`,
+            `https://graph.facebook.com/v19.0/${adAccountId}/campaigns`,
             {
                 method: 'POST',
                 headers: {
@@ -56,27 +56,27 @@ export default async function handler(req, res) {
         
         const campaign = await campaignResponse.json();
         
-        // 2. Ad Set oluştur - Link Clicks için
+        // 2. Ad Set oluştur - Engagement için Advantage+ targeting
         const adSetData = new URLSearchParams({
             name: `${campaignName} - Ad Set`,
             campaign_id: campaign.id,
             daily_budget: (dailyBudget * 100).toString(),
-            billing_event: 'LINK_CLICKS',
-            optimization_goal: 'LINK_CLICKS',
+            billing_event: 'IMPRESSIONS',
+            optimization_goal: 'POST_ENGAGEMENT',
             bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
             targeting: JSON.stringify({
                 geo_locations: { countries: ['TR'] },
                 age_min: 18,
                 age_max: 65,
-                publisher_platforms: ['facebook'],
-                device_platforms: ['mobile']
+                publisher_platforms: ['instagram'],
+                device_platforms: ['mobile', 'desktop']
             }),
             status: 'PAUSED',
             access_token: accessToken
         });
         
         const adSetResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${adAccountId}/adsets`,
+            `https://graph.facebook.com/v19.0/${adAccountId}/adsets`,
             {
                 method: 'POST',
                 headers: {
@@ -93,26 +93,27 @@ export default async function handler(req, res) {
         
         const adSet = await adSetResponse.json();
         
-        // 3. Creative oluştur - Basit Link Ad
+        // 3. Creative oluştur - Instagram Story Ad with selected post
         const creativeData = new URLSearchParams({
             name: `${campaignName} - Creative`,
             object_story_spec: JSON.stringify({
-                page_id: pageId,
+                instagram_actor_id: pageId,
                 link_data: {
-                    link: `https://m.me/${pageId}`, // Messenger linki
-                    message: 'Bize mesaj gönderin! 💬',
+                    link: `https://www.instagram.com/direct/t/${pageId}`,
+                    message: 'Bize DM gönderin! 💬',
                     name: campaignName,
                     description: 'Sorularınız için bize yazın.',
                     call_to_action: {
                         type: 'SEND_MESSAGE'
-                    }
+                    },
+                    image_hash: selectedPost.media_url ? await uploadImage(selectedPost.media_url, accessToken, adAccountId) : null
                 }
             }),
             access_token: accessToken
         });
         
         const creativeResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${adAccountId}/adcreatives`,
+            `https://graph.facebook.com/v19.0/${adAccountId}/adcreatives`,
             {
                 method: 'POST',
                 headers: {
@@ -139,7 +140,7 @@ export default async function handler(req, res) {
         });
         
         const adResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${adAccountId}/ads`,
+            `https://graph.facebook.com/v19.0/${adAccountId}/ads`,
             {
                 method: 'POST',
                 headers: {
@@ -170,5 +171,41 @@ export default async function handler(req, res) {
             success: false, 
             error: error.message || 'Sunucu hatası'
         });
+    }
+}
+
+// Helper function to upload image and get image_hash
+async function uploadImage(imageUrl, accessToken, adAccountId) {
+    try {
+        // Download the image
+        const imageResponse = await fetch(imageUrl);
+        const imageBuffer = await imageResponse.arrayBuffer();
+        
+        // Upload to Facebook
+        const uploadData = new URLSearchParams({
+            bytes: Buffer.from(imageBuffer).toString('base64'),
+            access_token: accessToken
+        });
+        
+        const uploadResponse = await fetch(
+            `https://graph.facebook.com/v19.0/${adAccountId}/adimages`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: uploadData
+            }
+        );
+        
+        if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            return uploadResult.images?.hash;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Image upload error:', error);
+        return null;
     }
 }

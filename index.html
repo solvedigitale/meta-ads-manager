@@ -218,7 +218,7 @@
     <div class="container">
         <div class="header">
             <h1>📱 Meta Reklam Yöneticisi</h1>
-            <p>Instagram Etkileşim Reklamları</p>
+            <p>Instagram Etkileşim Reklamları - DM CTA</p>
         </div>
         
         <div class="form-container">
@@ -236,10 +236,6 @@
                 <div class="form-group">
                     <label>Instagram Sayfa ID:</label>
                     <input type="text" id="pageId" placeholder="Instagram sayfa ID'niz">
-                </div>
-                <div class="form-group">
-                    <label>Instagram Business Account ID:</label>
-                    <input type="text" id="instagramAccountId" value="1285700382625176" readonly>
                 </div>
                 <button class="btn" onclick="connectAPI()" id="connectBtn">Bağlan</button>
                 <div id="connectionStatus"></div>
@@ -259,7 +255,7 @@
                 <div class="form-group">
                     <label>Performans Hedefi:</label>
                     <select id="performanceGoal">
-                        <option value="CONVERSATIONS">Konuşma Sayısını En Üst Seviyeye Çıkar</option>
+                        <option value="POST_ENGAGEMENT">Gönderi Etkileşimini En Üst Seviyeye Çıkar</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -302,7 +298,6 @@
         let selectedPost = null;
         let posts = [];
         let apiCredentials = {};
-        const instagramAccountId = "1285700382625176"; // Yetkili Instagram Business Account ID
         
         function goToStep(step) {
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -452,16 +447,32 @@
                 postCard.className = 'post-card';
                 postCard.onclick = () => selectPost(post, postCard);
                 
-                const imageContent = post.media_url ? 
-                    `<img src="${post.media_url}" alt="Post" onerror="this.style.display='none'; this.parentNode.innerHTML='${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}';">` :
-                    `${post.media_type === 'IMAGE' ? '📷' : '🎥'} ${post.media_type}`;
+                // Carousel için ilk medyayı kullan, değilse normal medyayı
+                let mediaUrl = post.media_url;
+                let mediaType = post.media_type;
+                
+                if (post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.length > 0) {
+                    mediaUrl = post.children.data[0].media_url;
+                    mediaType = post.children.data[0].media_type;
+                }
+                
+                const imageContent = mediaUrl ? 
+                    `<img src="${mediaUrl}" alt="Post" onerror="this.style.display='none'; this.parentNode.innerHTML='${mediaType === 'IMAGE' ? '📷' : '🎥'} ${mediaType}';">` :
+                    `${mediaType === 'IMAGE' ? '📷' : '🎥'} ${mediaType}`;
+                
+                const carouselIndicator = post.media_type === 'CAROUSEL_ALBUM' ? 
+                    `<div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">${post.children?.data?.length || 0} 📷</div>` : '';
                 
                 postCard.innerHTML = `
-                    <div class="post-image">
+                    <div class="post-image" style="position: relative;">
                         ${imageContent}
+                        ${carouselIndicator}
                     </div>
                     <p style="font-size: 12px; color: #666;">
                         ${post.caption ? post.caption.substring(0, 50) + '...' : 'Açıklama yok'}
+                    </p>
+                    <p style="font-size: 10px; color: #999;">
+                        ${post.media_type === 'CAROUSEL_ALBUM' ? 'Carousel' : post.media_type} • ${new Date(post.timestamp).toLocaleDateString('tr-TR')}
                     </p>
                 `;
                 
