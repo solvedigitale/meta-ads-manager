@@ -64,7 +64,7 @@ export default async function handler(req, res) {
             campaign_id: campaign.id,
             daily_budget: (dailyBudget * 100).toString(),
             billing_event: 'IMPRESSIONS',
-            optimization_goal: performanceGoal,
+            optimization_goal: 'POST_ENGAGEMENT',
             bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
             targeting: JSON.stringify({
                 geo_locations: { countries: ['TR'] },
